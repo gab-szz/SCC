@@ -7,16 +7,23 @@ import sqlite3
 main_window = new_window()
 # Classe da funções que serão executadas
 class Funcs():
+    # Função para limpar as entradas
     def limpa_cliente(self):
         self.en_codigo.delete(0, END)
         self.en_cidade.delete(0, END)
         self.en_telefone.delete(0, END)
         self.en_nome.delete(0, END)
+    
+    # Função para conectar ao banco de dados
     def conecta_bd(self):
         self.conn = sqlite3.connect("BD_SCC.db")
         self.cursor = self.conn.cursor(); print("Conectando ao banco de dados")
+        
+    # Função para desconectar do banco de dados
     def desconecta_bd(self):
         self.conn.close(); print("Desconectando ao banco de dados")
+        
+    # Função para montar a tabela
     def montaTabelas(self):
         self.conecta_bd()
         ### Criar tabela
@@ -30,6 +37,8 @@ class Funcs():
         """)
         self.conn.commit(); print("Banco de dados criado")
         self.desconecta_bd()
+        
+    # Função para adicionar um cliente
     def add_cliente(self):
         self.codigo = self.en_codigo.get()
         self.nome =  self.en_nome.get()
@@ -43,6 +52,8 @@ class Funcs():
         self.desconecta_bd()
         self.select_lista()
         self.limpa_cliente()
+        
+    # Função para mostrar a lista
     def select_lista(self):
         self.tv.delete(*self.tv.get_children())
         self.conecta_bd()
@@ -52,8 +63,10 @@ class Funcs():
             self.tv.insert("", END, values=i)
         self.desconecta_bd()
         
+# Classe com a aplicaçãos
 class Application(Funcs):
     #def open_main_window():
+    # Iniciando a tela
     def __init__(self):
         self.main_window = main_window
         self.tela_principal()
@@ -64,10 +77,12 @@ class Application(Funcs):
         self.select_lista()
         
         main_window.mainloop()
-        
+    
+    # Criando a tela principal
     def tela_principal(self):
         main_window.build_window('SCC', '700x500+320+80', '#004d00', False)
         
+    # Criando os frames
     def frames_da_tela(self):
         # Criando os frames
         self.frame1 = Frame(main_window, bd=4, bg='#ccffb3',
@@ -79,6 +94,7 @@ class Application(Funcs):
         self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.46)
         self.frame2.place(relx=0.02, rely=0.5, relwidth=0.96, relheight=0.46)
         
+    # Criando os widgets no frame1
     def widgets_frame1(self):
         # Criando os botões
         self.bt_busca = Button(self.frame1, text="Buscar", bg='#339900',
@@ -126,7 +142,8 @@ class Application(Funcs):
         self.en_nome.place(relx=0.05, rely=0.45, relwidth=0.8)
         self.en_telefone.place(relx=0.05, rely=0.7, relwidth=0.4)
         self.en_cidade.place(relx=0.5, rely=0.7, relwidth=0.4)
-        
+    
+    # Criando os widgets no frame2
     def lista_frame2(self):
         self.tv = ttk.Treeview(self.frame2, height=3,
                                      column=("col1", "col2", "col3", "col4"))
