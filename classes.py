@@ -37,16 +37,24 @@ class gerar_bd ():
         self.cursor.execute(f"""INSERT INTO {text_bd}""")
         self.cursor.commit()
 
-    def execute_bd(self, text_bd2):
-        self.cursor.execute("{}").format(text_bd2)
+    def execute_bd(self, text_bd):
+        self.cursor.execute("{}").format(text_bd)
         self.cursor.commit()
         
-    def select_bd(self, text_bd3):
-        self.cursor.execute(f"""{text_bd3}""")
+    def select_bd(self, text_bd):
+        self.cursor.execute(f"""{text_bd}""")
         
-    def puxar_dado(self, text_bd3):
-        self.cursor.execute(f"""{text_bd3}""")
+    def puxar_dado(self, text_bd):
+        self.cursor.execute(f"""{text_bd}""")
         self.cursor.fetchall()
+        
+    def select_lista(self, text_bd, text_bd2):
+        self.listaCli.delete(*self.listaCli.get_children())
+        self.connect_bd(text_bd)
+        lista = self.cursor.execute(f"""{text_bd2}""")
+        for i in lista:
+            self.listaCli.insert('', 'end', values=(i))
+        self.disconnect_bd()
         
     def disconnect_bd(self):
         self.conn.close()

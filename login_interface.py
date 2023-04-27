@@ -32,20 +32,29 @@ senha_user = cursor.fetchall()
 # Função para fazer login
 
 def obter_valor():
+    app = Application()
     print("executado")
     username = username_camp.get()
     password = password_camp.get()
     if (username == "".join(nome_user[0])) and (password == "".join(senha_user[0])):
         login_window.destroy()
-        open_main_window()
+        app.open_main_window()
     elif ((username == "") and (password == "")):
         text_login.set("Digite o usuário e senha")
+        login_window.destroy()
+        app.open_main_window()
     elif ((username != "") and (password == "")):
         text_login.set("Digite a senha")
+        login_window.destroy()
+        app.open_main_window()
     elif ((username == "") and (password != "")):
         text_login.set("Digite o usuário")
+        login_window.destroy()
+        app.open_main_window()
     else:
         text_login.set("Usuário ou senha incorretos")
+        login_window.destroy()
+        app.open_main_window()
 
 # Inicio do Programa
 
