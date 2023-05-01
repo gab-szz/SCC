@@ -53,16 +53,51 @@ class Funcs():
         self.select_lista()
         self.limpa_cliente()
         
-    # Função para mostrar a lista
+    # Função para atualizar a tabela e a treeview
     def select_lista(self):
         self.tv.delete(*self.tv.get_children())
         self.conecta_bd()
         lista = self.cursor.execute(""" SELECT cod, nome_cliente, telefone, cidade FROM clientes
-            ORDER BY nome_cliente ASC; """)
+            ORDER BY cod ASC; """)
         for i in lista:
+            print(i)
             self.tv.insert("", END, values=i)
         self.desconecta_bd()
         
+    # Função do duplo clique no cliente na treeview puxar os dados para as entrys
+    def OnDoubleClick(self, event):
+        self.limpa_cliente()
+        self.tv.selection()
+        
+        for n in self.tv.selection():
+            col1, col2, col3, col4 = self.tv.item(n, 'values')
+            self.en_codigo.insert(END, col1)
+            self.en_cidade.insert(END, col2)
+            self.en_telefone.insert(END, col3)
+            self.en_nome.insert(END, col4)
+    
+    # Função para deletar os clientes da tabela
+    def deleta_cliente(self):
+        self.codigo = self.en_codigo.get()
+        self.conecta_bd()
+        self.cursor.execute(""" DELETE FROM clientes WHERE cod =?""", (self.codigo,))
+        self.conn.commit()
+        self.desconecta_bd()
+        self.select_lista()
+        self.limpa_cliente()
+        
+    def resolucao(self):
+        if (self.bt_abrirf2["text"] == "Abrir lista"):
+            main_window.geometry("700x500+320+80")
+            self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.46)
+            self.frame2.place(relx=0.02, rely=0.5, relwidth=0.96, relheight=0.46)
+            self.bt_abrirf2["text"] = "Fechar lista"
+            
+        elif(self.bt_abrirf2["text"] == "Fechar lista"):
+            self.frame2.place_forget()
+            self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.94)
+            main_window.geometry("700x250+320+80")
+            self.bt_abrirf2["text"] = "Abrir lista"
 # Classe com a aplicaçãos
 class Application(Funcs):
     #def open_main_window():
@@ -80,7 +115,7 @@ class Application(Funcs):
     
     # Criando a tela principal
     def tela_principal(self):
-        main_window.build_window('SCC', '700x500+320+80', '#004d00', False)
+        main_window.build_window('SCC', '700x250+320+80', '#004d00', False)
         
     # Criando os frames
     def frames_da_tela(self):
@@ -91,8 +126,7 @@ class Application(Funcs):
                highlightbackground='#339900', highlightthickness=3)
         
         # Posicionando os frames
-        self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.46)
-        self.frame2.place(relx=0.02, rely=0.5, relwidth=0.96, relheight=0.46)
+        self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.94)
         
     # Criando os widgets no frame1
     def widgets_frame1(self):
@@ -106,7 +140,9 @@ class Application(Funcs):
         self.bt_alterar = Button(self.frame1, text="Alterar", bg='#339900',
                         bd=2, fg="white", font=('verdana', 8, 'bold'))
         self.bt_apagar = Button(self.frame1, text="Apagar", bg='#339900',
-                        bd=2, fg="white", font=('verdana', 8, 'bold'))
+                        bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.deleta_cliente())
+        self.bt_abrirf2 = Button(self.frame1, text="Abrir lista", bg='#339900',
+                        bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.resolucao())
         
         # Posicionando os botões
         self.bt_busca.place(relx=0.3, rely=0.1, relwidth=0.1, relheight=0.15)
@@ -114,6 +150,7 @@ class Application(Funcs):
         self.bt_novo.place(relx=0.6, rely=0.1, relwidth=0.1, relheight=0.15)
         self.bt_alterar.place(relx=0.7, rely=0.1, relwidth=0.1, relheight=0.15)
         self.bt_apagar.place(relx=0.8, rely=0.1, relwidth=0.1, relheight=0.15)
+        self.bt_abrirf2.place(relx=0.87, rely=0.85, relwidth=0.13, relheight=0.15)
         
         # Criando as labels
         self.lb_codigo = Label(self.frame1, text="Código", bg='#ccffb3',
@@ -160,8 +197,12 @@ class Application(Funcs):
         self.tv.column("#4", width=125)
         self.tv.place(relx=0.01, rely=0.1, relwidth=0.95, relheight=0.85)
 
+        # Criando a scrollbar
         self.scroolLista = Scrollbar(self.frame2, orient='vertical')
         self.tv.configure(yscroll=self.scroolLista.set)
         self.scroolLista.place(relx=0.96, rely=0.1, relwidth=0.04, relheight=0.85)
+        
+        # Chamando o evento de ao clicar puxar os dados
+        self.tv.bind('<Double-1>', self.OnDoubleClick)
         
 Application()
