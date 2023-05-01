@@ -25,11 +25,23 @@ class Relatorios():
         self.c = canvas.Canvas("cliente.pdf")
         self.codigoRel = self.en_codigo.get()
         self.nomeRel = self.en_nome.get()
-        self.telefone = self.en_telefone.get()
-        self.cidade = self.en_cidade.get()
+        self.telefoneRel = self.en_telefone.get()
+        self.cidadeRel = self.en_cidade.get()
         
         self.c.setFont("Helvetica-Bold", 24)
         self.c.drawString(220, 750, "Ficha do Cliente") # Titulo
+        
+        self.c.rect(20, 620, 550, 3, fill=True, stroke=False) # Faz uma linha
+        
+        self.c.setFont("Helvetica-Bold", 18)
+        self.c.drawString(50, 700, "Codigo:" + self.codigoRel) 
+        self.c.drawString(50, 680, "Nome:" + self.nomeRel) 
+        self.c.drawString(50, 660, "Telefone:" + self.telefoneRel) 
+        self.c.drawString(50, 640, "Cidade:" + self.cidadeRel) 
+        
+        self.c.rect(20, 620, 550, 3, fill=True, stroke=False) # Faz uma linha
+        
+        
         self.c.showPage()
         self.c.save()
         self.printCliente()
@@ -105,9 +117,10 @@ class Funcs():
         for n in self.tv.selection():
             col1, col2, col3, col4 = self.tv.item(n, 'values')
             self.en_codigo.insert(END, col1)
-            self.en_cidade.insert(END, col2)
+            self.en_nome.insert(END, col2)
             self.en_telefone.insert(END, col3)
-            self.en_nome.insert(END, col4)
+            self.en_cidade.insert(END, col4)
+            
     
     # Função para deletar os clientes da tabela
     def deleta_cliente(self):
@@ -148,10 +161,23 @@ class Funcs():
         self.select_lista()
         self.limpa_cliente()
 
-    # Função de menu
-    
+    # Função do botão buscar
+    def busca_cliente(self):
+        self.conecta_bd()
+        self.tv.delete(*self.tv.get_children())
         
+        self.en_nome.insert(END, '%')
+        nome = self.en_nome.get()
+        print(nome)
+        self.cursor.execute(""" SELECT cod, nome_cliente, telefone, cidade FROM clientes
+            WHERE nome_cliente LIKE '%s' ORDER BY cod ASC"""  % nome)
+        buscanomeCli = self.cursor.fetchall()
+        print(buscanomeCli)
+        for i in buscanomeCli:
+            self.tv.insert("", END, values=i)
 
+        self.limpa_cliente()
+        self.desconecta_bd()
 
 # Classe com a aplicaçãos
 class Application(Funcs, Relatorios):
@@ -189,7 +215,7 @@ class Application(Funcs, Relatorios):
     def widgets_frame1(self):
         # Criando os botões
         self.bt_busca = Button(self.frame1, text="Buscar", bg='#339900',
-                        bd=2, fg="white", font=('verdana', 8, 'bold'))
+                        bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.busca_cliente())
         self.bt_limpa = Button(self.frame1, text="Limpar", bg='#339900',
                         bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.limpa_cliente())
         self.bt_novo = Button(self.frame1, text="Novo", bg='#339900',
@@ -264,7 +290,7 @@ class Application(Funcs, Relatorios):
         self.tv.bind('<Double-1>', self.OnDoubleClick)
     
     def menu(self):
-        menubar = Menu(main_window, bg='#004d00')
+        menubar = Menu(main_window)
         main_window.config(menu=menubar)
         filemenu = Menu(menubar, tearoff=0)
         #filemenu2 = Menu(menubar, tearoff=0)
