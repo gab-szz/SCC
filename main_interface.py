@@ -3,8 +3,41 @@ from tkinter import ttk
 from classes import *
 import sqlite3
 
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Image
+import webbrowser
+
+
 # Criando o objeto que será a tela
 main_window = new_window()
+
+# Classe para relatorios em pdf
+class Relatorios():
+    # Função para abrir o relatório em pdf no browser padrão
+    def printCliente(self):
+        webbrowser.open("cliente.pdf") 
+        
+    # Função para gerar o relatório em pdf
+    def geraRelatCliente(self):
+        self.c = canvas.Canvas("cliente.pdf")
+        self.codigoRel = self.en_codigo.get()
+        self.nomeRel = self.en_nome.get()
+        self.telefone = self.en_telefone.get()
+        self.cidade = self.en_cidade.get()
+        
+        self.c.setFont("Helvetica-Bold", 24)
+        self.c.drawString(220, 750, "Ficha do Cliente") # Titulo
+        self.c.showPage()
+        self.c.save()
+        self.printCliente()
+        
+        
+
+
+
 # Classe da funções que serão executadas
 class Funcs():
     # Função para limpar as entradas
@@ -86,6 +119,7 @@ class Funcs():
         self.select_lista()
         self.limpa_cliente()
         
+    # Função para ocultar e mostrar o segundo frame
     def resolucao(self):
         if (self.bt_abrirf2["text"] == "Abrir lista"):
             main_window.geometry("700x500+320+80")
@@ -98,8 +132,29 @@ class Funcs():
             self.frame1.place(relx=0.02, rely=0.02, relwidth=0.96, relheight=0.94)
             main_window.geometry("700x250+320+80")
             self.bt_abrirf2["text"] = "Abrir lista"
+
+    # Função para alterar dados de um cliente
+    def alterar_cliente(self):
+        self.codigo = self.en_codigo.get()
+        self.nome =  self.en_nome.get()
+        self.fone = self.en_telefone.get()
+        self.cidade = self.en_cidade.get()
+        self.conecta_bd()
+
+        self.cursor.execute(""" UPDATE clientes SET nome_cliente =?, telefone =?, cidade =?
+            WHERE cod =?""", (self.nome, self.fone, self.cidade, self.codigo))
+        self.conn.commit()
+        self.desconecta_bd()
+        self.select_lista()
+        self.limpa_cliente()
+
+    # Função de menu
+    
+        
+
+
 # Classe com a aplicaçãos
-class Application(Funcs):
+class Application(Funcs, Relatorios):
     #def open_main_window():
     # Iniciando a tela
     def __init__(self):
@@ -110,6 +165,8 @@ class Application(Funcs):
         self.lista_frame2()
         self.montaTabelas()
         self.select_lista()
+        self.menu()
+        
         
         main_window.mainloop()
     
@@ -138,7 +195,7 @@ class Application(Funcs):
         self.bt_novo = Button(self.frame1, text="Novo", bg='#339900',
                         bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.add_cliente())
         self.bt_alterar = Button(self.frame1, text="Alterar", bg='#339900',
-                        bd=2, fg="white", font=('verdana', 8, 'bold'))
+                        bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.alterar_cliente())
         self.bt_apagar = Button(self.frame1, text="Apagar", bg='#339900',
                         bd=2, fg="white", font=('verdana', 8, 'bold'), command=lambda: self.deleta_cliente())
         self.bt_abrirf2 = Button(self.frame1, text="Abrir lista", bg='#339900',
@@ -150,7 +207,8 @@ class Application(Funcs):
         self.bt_novo.place(relx=0.6, rely=0.1, relwidth=0.1, relheight=0.15)
         self.bt_alterar.place(relx=0.7, rely=0.1, relwidth=0.1, relheight=0.15)
         self.bt_apagar.place(relx=0.8, rely=0.1, relwidth=0.1, relheight=0.15)
-        self.bt_abrirf2.place(relx=0.87, rely=0.85, relwidth=0.13, relheight=0.15)
+        self.bt_abrirf2.place(relx=0.86, rely=0.85, relwidth=0.14, relheight=0.15)
+        
         
         # Criando as labels
         self.lb_codigo = Label(self.frame1, text="Código", bg='#ccffb3',
@@ -204,5 +262,18 @@ class Application(Funcs):
         
         # Chamando o evento de ao clicar puxar os dados
         self.tv.bind('<Double-1>', self.OnDoubleClick)
+    
+    def menu(self):
+        menubar = Menu(main_window, bg='#004d00')
+        main_window.config(menu=menubar)
+        filemenu = Menu(menubar, tearoff=0)
+        #filemenu2 = Menu(menubar, tearoff=0)
+        
+        def Quit(): main_window.destroy()
+        
+        menubar.add_cascade(label="Opções", menu=filemenu)
+        #menubar.add_cascade(label="Sobre", menu=filemenu2)
+        filemenu.add_command(label="Gerar relatório", command=self.geraRelatCliente)
+        filemenu.add_command(label="Sair", command=Quit)
         
 Application()
